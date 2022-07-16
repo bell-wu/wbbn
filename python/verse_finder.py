@@ -12,18 +12,16 @@ class Verse:
         self.verse_number = verse_number
 
 
-def find_verses(references):
-    verse_references = references.split(";")
+def find_verses(s):
+    verse_references = get_verse_references(s)
 
-    with open("books.json") as json_file:
+    with open("../books.json") as json_file:
         books_with_abbrv = json.load(json_file)
     
-    with open("verses.json") as json_file:
+    with open("../verses.json") as json_file:
         bible = json.load(json_file)
         
-        for ref in verse_references:
-            v = process_reference(ref)
-
+        for v in verse_references:
             if v.book in books_with_one_chapter:
                 print(v.book)
                 print(v.verse_number)
@@ -36,15 +34,58 @@ def find_verses(references):
             print(verse_reference + " - " + verse_text)
 
 
-def process_reference(ref):
+def get_verse_references(s):
+    l = re.split(",|;", s)
+    refs = []
+    current_book = ""
+    current_chapter = ""
+
+    for s in l:
+        if "-" in s:
+            first_verse, last_verse_num = process_verse_range(s)
+            refs.append(first_verse)
+
+            current_book = first_verse.book
+            current_chapter = first_verse.chapter
+
+            for n in range(int(first_verse.verse_number) + 1, last_verse_num + 1):
+                v = process_reference(str(n), first_verse.book, first_verse.chapter)
+                refs.append(v)
+        else: 
+            v = process_reference(s, current_book, current_chapter)
+            refs.append(v)
+            current_book = v.book
+            current_chapter = v.chapter
+
+    return refs
+
+def process_verse_range(s):
+    l = re.split("-", s)
+    last_verse_num = int(l[-1])
+
+    first_verse = process_reference(l[0])
+    return first_verse, last_verse_num
+
+
+def process_reference(ref, current_book = "", current_chapter = ""):
     # remove punctuation, except :
     ref = re.sub(r"[^a-z0-9:]+", '', ref.lower())
 
     numbers = re.findall(r"\d+", ref)
-    letters = re.findall(r"[a-z]+", ref.split(":")[0])[0]
+    letters = re.findall(r"[a-z]+", ref.split(":")[0])
+
+    # verse only
+    if len(numbers) == 1 and len(letters) == 0:
+        return Verse(current_book, current_chapter, numbers[0])
+
+    # chapter and verse, no book
+    if len(numbers) == 2 and len(letters) == 0:
+        return Verse(current_book, numbers[0], numbers[1])
+
+    # reference contains book, chapter, and number
+    letters = letters[0]
 
     # for books that start with a number
-    # if len(numbers) == 3:
     if ref.index(numbers[0]) < ref.index(letters):
         letters = numbers[0] + letters
         numbers = numbers[1:]
