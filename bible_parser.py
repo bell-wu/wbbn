@@ -10,6 +10,8 @@ Bible Parser
 Given an html file of the entire bible, write a map of book -> chapter -> verse as a json file.
 ex. python bible_parser.py bible.html verses.json
 
+TODO: add error handling
+
 """
 
 class ParserState(Enum):
@@ -26,7 +28,7 @@ class ParserState(Enum):
 	FOUND_PREVNEXT = 9
 
 	FOUND_POSSIBLE_NEW_CHAPTER = 10
-	SKIPPING_DIV = 11 # skip top outlines
+	FOUND_INFO = 11 # skip top outlines
 
 	FOUND_NEW_BOOK = 12
 
@@ -47,6 +49,8 @@ class BibleParser(HTMLParser):
 		if tag == 'p':
 			if ('class', 'text-outline') in attrs:
 				self.state = ParserState.FOUND_OUTLINE
+			if ('class', 'info') in attrs:
+				self.state = ParserState.FOUND_INFO
 			elif ('class', 'verse-links2') in attrs:
 				self.state = ParserState.FOUND_VERSE_LINKS
 			elif ('class', 'verse') in attrs:
@@ -68,7 +72,7 @@ class BibleParser(HTMLParser):
 				self.state = ParserState.FOUND_VERSE_BLOB
 				self.verse_number += 1
 
-		if tag == 'sup':
+		if tag == 'sup' and self.state not in [ParserState.FOUND_OUTLINE, ParserState.FOUND_INFO]:
 			self.state = ParserState.FOUND_SUPERSCRIPT
 
 	def handle_data(self, data):
@@ -100,12 +104,12 @@ class BibleParser(HTMLParser):
 				# I combined the b tags into one for convenience
 				# <a href="#calibre_link-1093" class="calibre16"><b class="calibre17">1&nbsp;Chronicles</b></a> &amp; <a href="#calibre_link-1094" class="calibre16"><b class="calibre17">2&nbsp;Chronicles</b></a><b class="calibre17"> Outline</b>
 				# <b class="calibre17">1&nbsp;Chronicles &amp; 2&nbsp;Chronicles Outline</b></p>
-				self.book_title = self.book_title.replace(" Outline", "")
+				self.book_title = self.book_title.replace(" Outline", "") # should prob move this to clean_up_map
 				self.state = ParserState.INITIAL
 				self.bible[self.book_title] = {}
 		
 		# # found end footnote tag, going back to verse data
-		if tag == 'sup': 
+		if tag == 'sup' and self.state == ParserState.FOUND_SUPERSCRIPT: 
 			self.state = ParserState.FOUND_VERSE_DATA
 
 		if tag == 'div': 
@@ -184,7 +188,7 @@ def clean_up_map(m):
 				n[new_key] = clean_up_map(m[k])
 
 		# remove extraneous spaces and new lines
-		elif m[k].strip(): # for removing "0" verses lol
+		elif new_key != "0": # for removing "0" verses lol
 			n[new_key] = re.sub("\s+", " ", m[k]).strip()
 	return n
 
