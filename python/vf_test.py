@@ -1,7 +1,7 @@
 import unittest
 import verse_finder as vf
 
-class TestStringMethods(unittest.TestCase):
+class TestVerseFinder(unittest.TestCase):
 
     def test_basic(self):
         expected = "These will make war with the Lamb, and the Lamb will overcome them, for He is Lord of lords and King of kings; and they who are with Him, the called and chosen and faithful, will also overcome them."
