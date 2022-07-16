@@ -1,7 +1,16 @@
 import json
+import re
 import sys
 from enum import Enum
 from html.parser import HTMLParser
+
+"""
+Bible Parser
+
+Given an html file of the entire bible, write a map of book -> chapter -> verse as a json file.
+ex. python bible_parser.py bible.html verses.json
+
+"""
 
 class ParserState(Enum):
 	INITIAL = 0
@@ -41,9 +50,9 @@ class BibleParser(HTMLParser):
 			elif ('class', 'verse-links2') in attrs:
 				self.state = ParserState.FOUND_VERSE_LINKS
 			elif ('class', 'verse') in attrs:
-				self.state = ParserState.FOUND_VERSE_BLOB
-				self.verse_number += 1
-				# self.state = ParserState.FOUND_POSSIBLE_VERSE_BLOB
+				# self.state = ParserState.FOUND_VERSE_BLOB
+				# self.verse_number += 1
+				self.state = ParserState.FOUND_POSSIBLE_VERSE_BLOB
 			elif ('class', 'prevnext') in attrs:
 				self.state = ParserState.FOUND_PREVNEXT
 
@@ -51,16 +60,16 @@ class BibleParser(HTMLParser):
 			if ('class', 'calibre16') in attrs:
 				self.state = ParserState.FOUND_POSSIBLE_NEW_CHAPTER
 
-		if tag == 'b' and ('class', 'calibre17') in attrs:
-			self.state = ParserState.FOUND_NEW_BOOK
-			self.book_title = ""
-		# if tag == 'b':
-		# 	if ('class', 'calibre17') in attrs:
-		# 		self.state = ParserState.FOUND_NEW_BOOK
-		# 		self.book_title = ""
-		# 	elif ('class', 'calibre6') in attrs and self.state == ParserState.FOUND_POSSIBLE_VERSE_BLOB:
-		# 		self.state = ParserState.FOUND_VERSE_BLOB
-		# 		self.verse_number += 1
+		if tag == 'b':
+			if ('class', 'calibre17') in attrs:
+				self.state = ParserState.FOUND_NEW_BOOK
+				self.book_title = ""
+			elif ('class', 'calibre6') in attrs and self.state == ParserState.FOUND_POSSIBLE_VERSE_BLOB:
+				self.state = ParserState.FOUND_VERSE_BLOB
+				self.verse_number += 1
+
+		if tag == 'sup':
+			self.state = ParserState.FOUND_SUPERSCRIPT
 
 	def handle_data(self, data):
 		# print("Encountered some data: ", data)
@@ -175,8 +184,8 @@ def clean_up_map(m):
 				n[new_key] = clean_up_map(m[k])
 
 		# remove extraneous spaces and new lines
-		else:
-			n[new_key] = m[k].strip().strip("\n")
+		elif m[k].strip(): # for removing "0" verses lol
+			n[new_key] = re.sub("\s+", " ", m[k]).strip()
 	return n
 
 
