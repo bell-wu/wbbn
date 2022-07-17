@@ -17,6 +17,8 @@ def find_verses(s):
     verse_references = get_verse_references(s)
     file_path = os.path.dirname(os.path.abspath(__file__))
 
+    l = []
+
     with open(file_path + "/../books.json") as json_file:
         books_with_abbrv = json.load(json_file)
     
@@ -31,7 +33,11 @@ def find_verses(s):
                 verse_text = bible[v.book][v.chapter][v.verse_number]
                 verse_reference = books_with_abbrv[v.book] + " " + v.chapter + ":" + v.verse_number
 
-            print(verse_reference + " - " + verse_text)
+            s = verse_reference + " - " + verse_text
+            print(s)
+            l.append(s)
+
+    return l
 
 
 def get_verse_references(s):
