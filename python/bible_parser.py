@@ -8,7 +8,7 @@ from html.parser import HTMLParser
 Bible Parser
 
 Given an html file of the entire bible, write a map of book -> chapter -> verse as a json file.
-ex. python bible_parser.py bible.html verses.json
+ex. go to python/ and run (python3 doesn't work): python bible_parser.py bible.html verses.json
 
 TODO: add error handling
 
@@ -161,7 +161,7 @@ def clean_up_map(m):
 		split_books = new_key.split("  ")
 		split_chapter_title = k.split(" ")
 
-		if new_key in ("2john", "3john", "jude", "obadiah"):
+		if new_key in ("2john", "3john", "jude", "obadiah", "philemon"):
 			n[new_key] = clean_up_map(m[k][m[k].keys()[0]])
 		elif type(m[k]) == dict:
 			# clean up book names like "1Samuel  2Samuel" -> "1Samuel", "2Samuel"

@@ -4,7 +4,7 @@ import sys
 import os
 
 books_of_the_bible = ['1chronicles', '1corinthians', '1john', '1kings', '1peter', '1samuel', '1thessalonians', '1timothy', '2chronicles', '2corinthians', '2john', '2kings', '2peter', '2samuel', '2thessalonians', '2timothy', '3john', 'acts', 'amos', 'colossians', 'daniel', 'deuteronomy', 'ecclesiastes', 'ephesians', 'esther', 'exodus', 'ezekiel', 'ezra', 'galatians', 'genesis', 'habakkuk', 'haggai', 'hebrews', 'hosea', 'isaiah', 'james', 'jeremiah', 'job', 'joel', 'john', 'jonah', 'joshua', 'jude', 'judges', 'lamentations', 'leviticus', 'luke', 'malachi', 'mark', 'matthew', 'micah', 'nahum', 'nehemiah', 'numbers', 'obadiah', 'philemon', 'philippians', 'proverbs', 'psalms', 'revelation', 'romans', 'ruth', 'song of songs', 'titus', 'zechariah', 'zephaniah']
-books_with_one_chapter = ['2john', '3john', 'jude', 'obadiah']
+books_with_one_chapter = ['2john', '3john', 'jude', 'obadiah', 'philemon']
 
 class Verse:
     def __init__(self, book, chapter, verse_number):
